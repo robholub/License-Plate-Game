@@ -1,0 +1,23 @@
+{
+  "name": "License Plate Game",
+  "short_name": "Plates",
+  "description": "Spot plates and claim territories on your drive.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/3b82f6/ffffff?text=LPG",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512/3b82f6/ffffff?text=LPG",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
