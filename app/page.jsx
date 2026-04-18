@@ -98,11 +98,14 @@ export default function App() {
   };
 
   const handleAddCustomPlate = (plateName) => {
+    // Check if plate already exists to prevent duplicates
+    if (plates.some(p => p.name.toLowerCase() === plateName.toLowerCase())) return;
+
     const newPlate = {
-      id: plateName.toLowerCase().replace(/\s+/g, '-'),
+      id: plateName.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now(),
       name: plateName,
       flagCode: null,
-      claimedBy: activePlayerId,
+      claimedBy: activePlayerId, // Auto-claim for the active player
       custom: true
     };
     setPlates(prev => [...prev, newPlate].sort((a, b) => a.name.localeCompare(b.name)));
@@ -197,10 +200,11 @@ function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onSta
 
 function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClaim, onAddCustom, getScore, onFinish }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddingModalOpen, setIsAddingModalOpen] = useState(false);
+  const [newCustomPlate, setNewCustomPlate] = useState('');
   
   const filteredPlates = useMemo(() => plates.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())), [plates, searchQuery]);
   
-  // Group the plates by country based on their flag codes
   const usPlates = filteredPlates.filter(p => p.flagCode && p.flagCode.startsWith('us-'));
   const caPlates = filteredPlates.filter(p => p.flagCode === 'ca');
   const mxPlates = filteredPlates.filter(p => p.flagCode === 'mx');
@@ -208,7 +212,14 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
 
   const activePlayer = players.find(p => p.id === activePlayerId);
 
-  // Helper component to render a grouped grid
+  const handleCustomSubmit = () => {
+    if (newCustomPlate.trim()) {
+      onAddCustom(newCustomPlate.trim());
+      setNewCustomPlate('');
+      setIsAddingModalOpen(false);
+    }
+  };
+
   const renderPlateGrid = (title, plateArray) => {
     if (plateArray.length === 0) return null;
     return (
@@ -253,6 +264,36 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
 
   return (
     <div className="pb-24 flex flex-col min-h-[100dvh]">
+      
+      {/* Custom Plate Modal Overlay */}
+      {isAddingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-extrabold text-slate-900">Add Custom Plate</h3>
+              <button onClick={() => setIsAddingModalOpen(false)} className="text-slate-400 active:text-slate-600"><X size={24} /></button>
+            </div>
+            <p className="text-sm text-slate-500 mb-6">Type in any country, territory, or custom plate you spotted.</p>
+            
+            <input 
+              autoFocus
+              type="text" 
+              value={newCustomPlate}
+              onChange={(e) => setNewCustomPlate(e.target.value)}
+              placeholder="e.g. Puerto Rico, Germany"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg select-text"
+            />
+            
+            <button 
+              onClick={handleCustomSubmit} 
+              className="w-full py-4 text-white font-bold bg-blue-600 rounded-xl active:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+            >
+              <Plus size={20} /> Add & Claim
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm pt-2">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -283,20 +324,32 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
       </div>
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        <div className="relative mb-6">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search size={20} className="text-slate-400" />
+        
+        {/* Search Bar & Add Button Container */}
+        <div className="flex gap-2 mb-6">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search size={20} className="text-slate-400" />
+            </div>
+            <input
+              type="text"
+              className="w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg select-text"
+              placeholder="Search plates..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 active:text-slate-600">
+                <X size={20} />
+              </button>
+            )}
           </div>
-          <input
-            type="text"
-            className="w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg select-text"
-            placeholder="Search plates..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 active:text-slate-600">
-              <X size={20} />
-            </button>
-          )}
+          
+          <button 
+            onClick={() => setIsAddingModalOpen(true)}
+            className="bg-slate-900 active:bg-slate-800 text-white px-5 rounded-2xl flex flex-col items-center justify-center shadow-sm transition-colors"
+            aria-label="Add custom plate"
+          >
+            <Plus size={24} />
+          </button>
         </div>
 
         <div className="mb-4 flex justify-between items-end">
