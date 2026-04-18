@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.license_plate_game_brown.twa",
+        "sha256_cert_fingerprints": ["4C:C4:02:A7:3F:5A:4B:DE:64:22:32:69:F5:0F:03:7E:2D:7A:CA:2A:B2:5D:04:3A:7A:EB:BE:DA:A4:45:56:7F"]
+      }
+    }]
