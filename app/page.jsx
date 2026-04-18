@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 const FLAG_MAP = {
+  // US States & Territories
   "Alabama": "us-al", "Alaska": "us-ak", "Arizona": "us-az", "Arkansas": "us-ar",
   "California": "us-ca", "Colorado": "us-co", "Connecticut": "us-ct", "Delaware": "us-de",
   "Florida": "us-fl", "Georgia": "us-ga", "Hawaii": "us-hi", "Idaho": "us-id",
@@ -20,9 +21,20 @@ const FLAG_MAP = {
   "South Dakota": "us-sd", "Tennessee": "us-tn", "Texas": "us-tx", "Utah": "us-ut",
   "Vermont": "us-vt", "Virginia": "us-va", "Washington": "us-wa", "West Virginia": "us-wv",
   "Wisconsin": "us-wi", "Wyoming": "us-wy", "Washington D.C.": "us-dc",
-  "Alberta": "ca-ab", "British Columbia": "ca-bc", "Manitoba": "ca-mb", "New Brunswick": "ca-nb",
-  "Newfoundland": "ca-nl", "Nova Scotia": "ca-ns", "Ontario": "ca-on", "Prince Edward Island": "ca-pe",
-  "Quebec": "ca-qc", "Saskatchewan": "ca-sk", "Northwest Territories": "ca-nt", "Nunavut": "ca-nu", "Yukon": "ca-yt"
+  
+  // Canadian Provinces (Mapped to National Flag)
+  "Alberta": "ca", "British Columbia": "ca", "Manitoba": "ca", "New Brunswick": "ca",
+  "Newfoundland": "ca", "Nova Scotia": "ca", "Ontario": "ca", "Prince Edward Island": "ca",
+  "Quebec": "ca", "Saskatchewan": "ca", "Northwest Territories": "ca", "Nunavut": "ca", "Yukon": "ca",
+
+  // Mexican States (Mapped to National Flag)
+  "Aguascalientes": "mx", "Baja California": "mx", "Baja California Sur": "mx", "Campeche": "mx", 
+  "Chiapas": "mx", "Chihuahua": "mx", "Coahuila": "mx", "Colima": "mx", "Durango": "mx", 
+  "Guanajuato": "mx", "Guerrero": "mx", "Hidalgo": "mx", "Jalisco": "mx", "Mexico City": "mx", 
+  "State of Mexico": "mx", "Michoacán": "mx", "Morelos": "mx", "Nayarit": "mx", "Nuevo León": "mx", 
+  "Oaxaca": "mx", "Puebla": "mx", "Querétaro": "mx", "Quintana Roo": "mx", "San Luis Potosí": "mx", 
+  "Sinaloa": "mx", "Sonora": "mx", "Tabasco": "mx", "Tamaulipas": "mx", "Tlaxcala": "mx", 
+  "Veracruz": "mx", "Yucatán": "mx", "Zacatecas": "mx"
 };
 
 const DEFAULT_PLATES = Object.keys(FLAG_MAP).sort();
