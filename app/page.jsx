@@ -22,12 +22,12 @@ const FLAG_MAP = {
   "Vermont": "us-vt", "Virginia": "us-va", "Washington": "us-wa", "West Virginia": "us-wv",
   "Wisconsin": "us-wi", "Wyoming": "us-wy", "Washington D.C.": "us-dc",
   
-  // Canadian Provinces (Mapped to National Flag)
+  // Canadian Provinces
   "Alberta": "ca", "British Columbia": "ca", "Manitoba": "ca", "New Brunswick": "ca",
   "Newfoundland": "ca", "Nova Scotia": "ca", "Ontario": "ca", "Prince Edward Island": "ca",
   "Quebec": "ca", "Saskatchewan": "ca", "Northwest Territories": "ca", "Nunavut": "ca", "Yukon": "ca",
 
-  // Mexican States (Mapped to National Flag)
+  // Mexican States
   "Aguascalientes": "mx", "Baja California": "mx", "Baja California Sur": "mx", "Campeche": "mx", 
   "Chiapas": "mx", "Chihuahua": "mx", "Coahuila": "mx", "Colima": "mx", "Durango": "mx", 
   "Guanajuato": "mx", "Guerrero": "mx", "Hidalgo": "mx", "Jalisco": "mx", "Mexico City": "mx", 
@@ -197,8 +197,59 @@ function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onSta
 
 function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClaim, onAddCustom, getScore, onFinish }) {
   const [searchQuery, setSearchQuery] = useState('');
+  
   const filteredPlates = useMemo(() => plates.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())), [plates, searchQuery]);
+  
+  // Group the plates by country based on their flag codes
+  const usPlates = filteredPlates.filter(p => p.flagCode && p.flagCode.startsWith('us-'));
+  const caPlates = filteredPlates.filter(p => p.flagCode === 'ca');
+  const mxPlates = filteredPlates.filter(p => p.flagCode === 'mx');
+  const customPlates = filteredPlates.filter(p => p.custom);
+
   const activePlayer = players.find(p => p.id === activePlayerId);
+
+  // Helper component to render a grouped grid
+  const renderPlateGrid = (title, plateArray) => {
+    if (plateArray.length === 0) return null;
+    return (
+      <div className="mb-8">
+        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">{title}</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {plateArray.map(plate => {
+            const isClaimed = plate.claimedBy !== null;
+            const owner = isClaimed ? players.find(p => p.id === plate.claimedBy) : null;
+            const isOwnedByActive = plate.claimedBy === activePlayerId;
+
+            return (
+              <button
+                key={plate.id} onClick={() => onClaim(plate.id)}
+                className={`relative p-4 rounded-2xl text-left transition-all duration-200 active:scale-95 flex flex-col justify-between min-h-[110px] ${isClaimed ? 'shadow-sm border border-transparent' : 'bg-white border border-slate-200 shadow-sm active:border-blue-300 active:shadow-md'}`}
+                style={{ backgroundColor: isClaimed ? owner?.color : undefined, color: isClaimed ? '#fff' : undefined }}
+              >
+                <div className="flex justify-between items-start w-full gap-2">
+                  <div className="font-bold leading-tight">{plate.name}</div>
+                  {plate.flagCode ? (
+                    <div className={`flex-shrink-0 w-8 h-6 rounded shadow-sm overflow-hidden flex items-center justify-center ${isClaimed ? 'bg-white/20' : 'bg-slate-100 border border-slate-200'}`}>
+                      <img src={`https://flagcdn.com/w40/${plate.flagCode}.png`} srcSet={`https://flagcdn.com/w80/${plate.flagCode}.png 2x`} alt={`${plate.name} flag`} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className={`flex-shrink-0 w-8 h-6 rounded flex items-center justify-center ${isClaimed ? 'text-white/60' : 'text-slate-300 bg-slate-50 border border-slate-200'}`}><Map size={14} /></div>
+                  )}
+                </div>
+                {isClaimed && (
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-xs font-semibold opacity-90 truncate pr-2">{owner?.name}</span>
+                    {isOwnedByActive ? <span className="bg-white/20 p-1 rounded-full flex-shrink-0"><X size={12} /></span> : <span className="bg-black/10 p-1 rounded-full flex-shrink-0"><Check size={12} /></span>}
+                  </div>
+                )}
+                {!isClaimed && <div className="mt-4 text-xs text-slate-400 font-medium">Tap to claim</div>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="pb-24 flex flex-col min-h-[100dvh]">
@@ -254,38 +305,11 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
         </div>
 
         {filteredPlates.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filteredPlates.map(plate => {
-              const isClaimed = plate.claimedBy !== null;
-              const owner = isClaimed ? players.find(p => p.id === plate.claimedBy) : null;
-              const isOwnedByActive = plate.claimedBy === activePlayerId;
-
-              return (
-                <button
-                  key={plate.id} onClick={() => onClaim(plate.id)}
-                  className={`relative p-4 rounded-2xl text-left transition-all duration-200 active:scale-95 flex flex-col justify-between min-h-[110px] ${isClaimed ? 'shadow-sm border border-transparent' : 'bg-white border border-slate-200 shadow-sm active:border-blue-300 active:shadow-md'}`}
-                  style={{ backgroundColor: isClaimed ? owner?.color : undefined, color: isClaimed ? '#fff' : undefined }}
-                >
-                  <div className="flex justify-between items-start w-full gap-2">
-                    <div className="font-bold leading-tight">{plate.name}</div>
-                    {plate.flagCode ? (
-                      <div className={`flex-shrink-0 w-8 h-6 rounded shadow-sm overflow-hidden flex items-center justify-center ${isClaimed ? 'bg-white/20' : 'bg-slate-100 border border-slate-200'}`}>
-                        <img src={`https://flagcdn.com/w40/${plate.flagCode}.png`} srcSet={`https://flagcdn.com/w80/${plate.flagCode}.png 2x`} alt={`${plate.name} flag`} className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                    ) : (
-                      <div className={`flex-shrink-0 w-8 h-6 rounded flex items-center justify-center ${isClaimed ? 'text-white/60' : 'text-slate-300 bg-slate-50 border border-slate-200'}`}><Map size={14} /></div>
-                    )}
-                  </div>
-                  {isClaimed && (
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs font-semibold opacity-90 truncate pr-2">{owner?.name}</span>
-                      {isOwnedByActive ? <span className="bg-white/20 p-1 rounded-full flex-shrink-0"><X size={12} /></span> : <span className="bg-black/10 p-1 rounded-full flex-shrink-0"><Check size={12} /></span>}
-                    </div>
-                  )}
-                  {!isClaimed && <div className="mt-4 text-xs text-slate-400 font-medium">Tap to claim</div>}
-                </button>
-              );
-            })}
+          <div>
+            {renderPlateGrid("United States", usPlates)}
+            {renderPlateGrid("Canada", caPlates)}
+            {renderPlateGrid("Mexico", mxPlates)}
+            {renderPlateGrid("Custom Plates", customPlates)}
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 shadow-sm">
