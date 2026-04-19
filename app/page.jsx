@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Car, Map, Users, Plus, Trash2, Play, Trophy, 
-  Search, Check, X, Flag, Award 
+  Search, Check, X, Flag, Award, AlertTriangle 
 } from 'lucide-react';
 
 const FLAG_MAP = {
@@ -45,6 +45,7 @@ const PLAYER_COLORS = [
 ];
 
 export default function App() {
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
   const [appState, setAppState] = useState('SETUP'); 
   const [players, setPlayers] = useState([
     { id: '1', name: 'Player 1', color: PLAYER_COLORS[0] },
@@ -119,6 +120,27 @@ export default function App() {
       className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans selection:bg-blue-200 select-none touch-manipulation"
       style={{ WebkitTapHighlightColor: 'transparent', overscrollBehaviorY: 'contain' }}
     >
+      {/* Safety Disclaimer Modal */}
+      {showDisclaimer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
+            <div className="mx-auto bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Safety First!</h2>
+            <p className="text-slate-500 mb-6 font-medium leading-relaxed">
+              This app is intended for <b className="text-slate-700">passengers only</b>. Please do not use your phone while driving. Stay focused on the road.
+            </p>
+            <button 
+              onClick={() => setShowDisclaimer(false)}
+              className="w-full py-4 text-white font-bold bg-slate-900 rounded-xl active:bg-slate-800 transition-colors shadow-lg"
+            >
+              I am a Passenger
+            </button>
+          </div>
+        </div>
+      )}
+
       {appState === 'SETUP' && (
         <SetupScreen 
           players={players} 
@@ -171,14 +193,12 @@ function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onSta
               <input
                 type="text" value={player.name}
                 onChange={(e) => onNameChange(player.id, e.target.value)}
-                /* min-w-0 added to prevent input from pushing trash can off screen */
                 className="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium select-text"
                 placeholder={`Player ${index + 1}`} maxLength={15}
               />
               {players.length > 1 && (
                 <button 
                   onClick={() => onRemovePlayer(player.id)} 
-                  /* flex-shrink-0 added to ensure trash can never shrinks out of view */
                   className="p-2 sm:p-3 flex-shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors"
                 >
                   <Trash2 size={20} />
