@@ -98,14 +98,13 @@ export default function App() {
   };
 
   const handleAddCustomPlate = (plateName) => {
-    // Check if plate already exists to prevent duplicates
     if (plates.some(p => p.name.toLowerCase() === plateName.toLowerCase())) return;
 
     const newPlate = {
       id: plateName.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now(),
       name: plateName,
       flagCode: null,
-      claimedBy: activePlayerId, // Auto-claim for the active player
+      claimedBy: activePlayerId,
       custom: true
     };
     setPlates(prev => [...prev, newPlate].sort((a, b) => a.name.localeCompare(b.name)));
@@ -146,7 +145,7 @@ export default function App() {
 
 function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onStart }) {
   return (
-    <div className="max-w-md mx-auto p-6 pt-12 min-h-[100dvh] flex flex-col">
+    <div className="max-w-md mx-auto p-4 sm:p-6 pt-12 min-h-[100dvh] flex flex-col">
       <div className="text-center mb-10 flex-shrink-0">
         <div className="bg-blue-600 text-white w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
           <Car size={40} />
@@ -155,7 +154,7 @@ function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onSta
         <p className="text-slate-500 mt-2">Spot plates. Claim territories. Win the drive.</p>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6 flex-1 overflow-y-auto no-scrollbar">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-6 flex-1 overflow-y-auto no-scrollbar">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Users size={20} className="text-slate-400" /> Players
@@ -167,16 +166,21 @@ function SetupScreen({ players, onAddPlayer, onRemovePlayer, onNameChange, onSta
 
         <div className="space-y-3">
           {players.map((player, index) => (
-            <div key={player.id} className="flex items-center gap-3">
+            <div key={player.id} className="flex items-center gap-2 sm:gap-3">
               <div className="w-4 h-8 rounded-full shadow-inner flex-shrink-0" style={{ backgroundColor: player.color }} />
               <input
                 type="text" value={player.name}
                 onChange={(e) => onNameChange(player.id, e.target.value)}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium select-text"
+                /* min-w-0 added to prevent input from pushing trash can off screen */
+                className="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium select-text"
                 placeholder={`Player ${index + 1}`} maxLength={15}
               />
               {players.length > 1 && (
-                <button onClick={() => onRemovePlayer(player.id)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors">
+                <button 
+                  onClick={() => onRemovePlayer(player.id)} 
+                  /* flex-shrink-0 added to ensure trash can never shrinks out of view */
+                  className="p-2 sm:p-3 flex-shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors"
+                >
                   <Trash2 size={20} />
                 </button>
               )}
