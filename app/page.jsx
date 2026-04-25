@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Car, Map, Users, Plus, Trash2, Play, Trophy, 
   Search, Check, X, Flag, Award, AlertTriangle 
 } from 'lucide-react';
 
 const FLAG_MAP = {
-  // US States & Territories
   "Alabama": "us-al", "Alaska": "us-ak", "Arizona": "us-az", "Arkansas": "us-ar",
   "California": "us-ca", "Colorado": "us-co", "Connecticut": "us-ct", "Delaware": "us-de",
   "Florida": "us-fl", "Georgia": "us-ga", "Hawaii": "us-hi", "Idaho": "us-id",
@@ -21,13 +20,9 @@ const FLAG_MAP = {
   "South Dakota": "us-sd", "Tennessee": "us-tn", "Texas": "us-tx", "Utah": "us-ut",
   "Vermont": "us-vt", "Virginia": "us-va", "Washington": "us-wa", "West Virginia": "us-wv",
   "Wisconsin": "us-wi", "Wyoming": "us-wy", "Washington D.C.": "us-dc",
-  
-  // Canadian Provinces
   "Alberta": "ca", "British Columbia": "ca", "Manitoba": "ca", "New Brunswick": "ca",
   "Newfoundland": "ca", "Nova Scotia": "ca", "Ontario": "ca", "Prince Edward Island": "ca",
   "Quebec": "ca", "Saskatchewan": "ca", "Northwest Territories": "ca", "Nunavut": "ca", "Yukon": "ca",
-
-  // Mexican States
   "Aguascalientes": "mx", "Baja California": "mx", "Baja California Sur": "mx", "Campeche": "mx", 
   "Chiapas": "mx", "Chihuahua": "mx", "Coahuila": "mx", "Colima": "mx", "Durango": "mx", 
   "Guanajuato": "mx", "Guerrero": "mx", "Hidalgo": "mx", "Jalisco": "mx", "Mexico City": "mx", 
@@ -44,7 +39,10 @@ const PLAYER_COLORS = [
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
 ];
 
+const SAVE_KEY = 'license_plate_game_save';
+
 export default function App() {
+  const [isLoaded, setIsLoaded] = useState(false); // Prevents flickering before load
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const [appState, setAppState] = useState('SETUP'); 
   const [players, setPlayers] = useState([
@@ -53,6 +51,37 @@ export default function App() {
   ]);
   const [plates, setPlates] = useState([]);
   const [activePlayerId, setActivePlayerId] = useState(null);
+
+  // LOAD GAME STATE
+  useEffect(() => {
+    const savedData = localStorage.getItem(SAVE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed.appState) setAppState(parsed.appState);
+        if (parsed.players) setPlayers(parsed.players);
+        if (parsed.plates) setPlates(parsed.plates);
+        if (parsed.activePlayerId) setActivePlayerId(parsed.activePlayerId);
+        if (parsed.showDisclaimer !== undefined) setShowDisclaimer(parsed.showDisclaimer);
+      } catch (e) {
+        console.error("Failed to load save data");
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // SAVE GAME STATE
+  useEffect(() => {
+    if (!isLoaded) return; // Don't overwrite save before initial load
+    const dataToSave = {
+      appState,
+      players,
+      plates,
+      activePlayerId,
+      showDisclaimer
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
+  }, [appState, players, plates, activePlayerId, showDisclaimer, isLoaded]);
 
   const handleAddPlayer = () => {
     if (players.length >= 8) return;
@@ -112,15 +141,27 @@ export default function App() {
   };
 
   const finishGame = () => setAppState('FINISHED');
-  const resetGame = () => { setAppState('SETUP'); setPlates([]); };
+  
+  const resetGame = () => { 
+    setAppState('SETUP'); 
+    setPlates([]); 
+    // We intentionally don't reset players or the disclaimer so the next game starts faster!
+  };
+  
   const getScore = (playerId) => plates.filter(p => p.claimedBy === playerId).length;
+
+  // Render a simple blank screen while pulling data from storage so you don't see a flash
+  if (!isLoaded) {
+    return <div className="min-h-[100dvh] bg-slate-50 flex items-center justify-center">
+      <Car className="animate-pulse text-blue-200" size={48} />
+    </div>;
+  }
 
   return (
     <div 
       className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans selection:bg-blue-200 select-none touch-manipulation"
       style={{ WebkitTapHighlightColor: 'transparent', overscrollBehaviorY: 'contain' }}
     >
-      {/* Safety Disclaimer Modal */}
       {showDisclaimer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
@@ -289,7 +330,6 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
   return (
     <div className="pb-24 flex flex-col min-h-[100dvh]">
       
-      {/* Custom Plate Modal Overlay */}
       {isAddingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
@@ -349,7 +389,6 @@ function GameScreen({ players, plates, activePlayerId, setActivePlayerId, onClai
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
         
-        {/* Search Bar & Add Button Container */}
         <div className="flex gap-2 mb-6">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
